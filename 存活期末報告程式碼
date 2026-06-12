@@ -1,0 +1,1464 @@
+#====================敘述統計量====================
+#離散型變數(卡方檢定)
+library(tidyverse)
+library(gtsummary)
+library(gt)
+df <- df %>%
+  mutate(
+    Smoking_Status = factor(Smoking_Status,
+                            levels = c("Never Smoked", "Former Smoker", "Current Smoker")),
+    Air_Pollution_Exposure = factor(Air_Pollution_Exposure,
+                                    levels = c("Low", "Moderate", "High")),
+    Alcohol_Use = factor(Alcohol_Use,
+                         levels = c("No Alcohol", "Moderate", "Heavy")),
+    Exercise_Frequency = factor(Exercise_Frequency,
+                                levels = c("Low", "Moderate", "High")),
+    Cancer_Stage = factor(Cancer_Stage,
+                          levels = c("Stage I", "Stage II", "Stage III", "Stage IV"))
+  )
+
+# 定義離散型變數清單
+discrete_vars <- c(
+  # 核心變數
+  "Smoking_Status", "Cancer_Stage", "Treatment", "Survived",
+  # 臨床背景
+  "Gender", "Cancer_Type", "NSCLC_Subtype",
+  "Chronic_Lung_Disease", "Previous_Cancer_History",
+  # 症狀
+  "Coughing", "Shortness_of_Breath", "Chest_Pain",
+  "Coughing_Blood", "Fatigue",
+  # 環境／生活型態
+  "Secondhand_Smoke", "Occupational_Hazard",
+  "Air_Pollution_Exposure", "Alcohol_Use",
+  "Exercise_Frequency", "Family_History"
+)
+
+df %>%
+  select(all_of(discrete_vars)) %>%
+  tbl_summary(
+    by = Survived,
+    statistic = all_categorical() ~ "{n} ({p}%)",
+    digits = all_categorical() ~ c(0, 1),
+    missing = "no"
+  ) %>%
+  add_overall() %>%
+  add_p() %>%          
+  bold_labels() %>%
+  bold_p(t = 0.05) %>%
+  modify_caption("**表一：離散型變數依存活狀態分組比較**")
+
+#====================連續長條圖====================
+library(ggplot2)
+library(patchwork)
+n  <- nrow(df)
+
+#(1)Age
+bw_Age <- (max(df$Age) - min(df$Age)) / 30  
+scale_factor_Age <- n * bw_Age                  
+
+ggplot(df, aes(x = Age)) +
+  geom_histogram(aes(y = after_stat(density) * scale_factor_Age),
+                 bins = 30, fill = "tan1", color = "white") +
+  stat_function(fun = function(x) dnorm(x, mean = mean(df$Age), sd = sd(df$Age)) * scale_factor_Age,
+                color = "tomato", linewidth = 1) +
+  scale_y_continuous(
+    name = "Count",
+    sec.axis = sec_axis(~ . / scale_factor_Age, name = "density")
+  ) +
+  labs(title = "年齡分佈", x = "Age") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.title.y.left  = element_text(color = "gray30"),
+        axis.title.y.right = element_text(color = "gray30"))
+
+#(2)BMI
+bw_BMI <- (max(df$BMI) - min(df$BMI)) / 30  
+scale_factor_BMI <- n * bw_BMI                   
+
+ggplot(df, aes(x = BMI)) +
+  geom_histogram(aes(y = after_stat(density) * scale_factor_BMI),
+                 bins = 30, fill = "darkseagreen1", color = "white") +
+  stat_function(fun = function(x) dnorm(x, mean = mean(df$BMI), sd = sd(df$BMI)) * scale_factor_BMI,
+                color = "lightgreen", linewidth = 1) +
+  scale_y_continuous(
+    name = "Count",
+    sec.axis = sec_axis(~ . / scale_factor_BMI, name = "density")
+  ) +
+  labs(title = "BMI分佈", x = "BMI") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.title.y.left  = element_text(color = "gray30"),
+        axis.title.y.right = element_text(color = "gray30"))
+
+#(3)Cigarettes_Per_Day
+bw_Cigarettes_Per_Day <- (max(df$Cigarettes_Per_Day) - min(df$Cigarettes_Per_Day)) / 30  
+scale_factor_Cigarettes_Per_Day <- n * bw_Cigarettes_Per_Day                   
+
+ggplot(df, aes(x = Cigarettes_Per_Day)) +
+  geom_histogram(aes(y = after_stat(density) * scale_factor_Cigarettes_Per_Day),
+                 bins = 30, fill = "lightpink", color = "white") +
+  stat_function(fun = function(x) dnorm(x, mean = mean(df$Cigarettes_Per_Day), sd = sd(df$Cigarettes_Per_Day)) * scale_factor_Cigarettes_Per_Day,
+                color = "lightcoral", linewidth = 1) +
+  scale_y_continuous(
+    name = "Count",
+    sec.axis = sec_axis(~ . / scale_factor_Cigarettes_Per_Day, name = "density")
+  ) +
+  labs(title = "每日吸菸數分佈", x = "Cigarettes Per Day") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.title.y.left  = element_text(color = "gray30"),
+        axis.title.y.right = element_text(color = "gray30"))
+
+#(4)Years_Smoking
+bw_Years_Smoking <- (max(df$Years_Smoking) - min(df$Years_Smoking)) / 30  
+scale_factor_Years_Smoking <- n * bw_Years_Smoking                   
+
+ggplot(df, aes(x = Years_Smoking)) +
+  geom_histogram(aes(y = after_stat(density) * scale_factor_Years_Smoking),
+                 bins = 30, fill = "lightblue1", color = "white") +
+  stat_function(fun = function(x) dnorm(x, mean = mean(df$Years_Smoking), sd = sd(df$Years_Smoking)) * scale_factor_Years_Smoking,
+                color = "steelblue1", linewidth = 1) +
+  scale_y_continuous(
+    name = "Count",
+    sec.axis = sec_axis(~ . / scale_factor_Years_Smoking, name = "density")
+  ) +
+  labs(title = "吸菸年數分佈", x = "Years Smoking") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.title.y.left  = element_text(color = "gray30"),
+        axis.title.y.right = element_text(color = "gray30"))
+
+#(5)Tumor_Size_cm
+bw_Tumor_Size_cm <- (max(df$Tumor_Size_cm) - min(df$Tumor_Size_cm)) / 30  
+scale_factor_Tumor_Size_cm <- n * bw_Tumor_Size_cm                   
+
+ggplot(df, aes(x = Tumor_Size_cm)) +
+  geom_histogram(aes(y = after_stat(density) * scale_factor_Tumor_Size_cm),
+                 bins = 30, fill = "mediumpurple1", color = "white") +
+  stat_function(fun = function(x) dnorm(x, mean = mean(df$Tumor_Size_cm), sd = sd(df$Tumor_Size_cm)) * scale_factor_Tumor_Size_cm,
+                color = "mediumslateblue", linewidth = 1) +
+  scale_y_continuous(
+    name = "Count",
+    sec.axis = sec_axis(~ . / scale_factor_Tumor_Size_cm, name = "density")
+  ) +
+  labs(title = "腫瘤大小分佈", x = "Tumor Size") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.title.y.left  = element_text(color = "gray30"),
+        axis.title.y.right = element_text(color = "gray30"))
+
+#(6)Survival_Months
+bw_Survival_Months <- (max(df$Survival_Months) - min(df$Survival_Months)) / 30  
+scale_factor_Survival_Months <- n * bw_Survival_Months                   
+
+ggplot(df, aes(x = Survival_Months)) +
+  geom_histogram(aes(y = after_stat(density) * scale_factor_Survival_Months),
+                 bins = 30, fill = "darkolivegreen1", color = "white") +
+  stat_function(fun = function(x) dnorm(x, mean = mean(df$Survival_Months), sd = sd(df$Survival_Months)) * scale_factor_Survival_Months,
+                color = "darkolivegreen4", linewidth = 1) +
+  scale_y_continuous(
+    name = "Count",
+    sec.axis = sec_axis(~ . / scale_factor_Survival_Months, name = "density")
+  ) +
+  labs(title = "存活月數分佈", x = "Survival Months") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.title.y.left  = element_text(color = "gray30"),
+        axis.title.y.right = element_text(color = "gray30"))
+#====================離散比例長條圖====================
+library(tidyverse)
+library(ggplot2)
+library(scales)
+
+#(1)Smoking_Status
+df_Smoking_Status <- df %>%
+  mutate( Smoking_Status = factor(Smoking_Status,
+                                  levels = c("Never Smoked", "Former Smoker", "Current Smoker")),
+          Survived = factor(Survived, levels = c("Yes", "No"), labels = c("存活", "未存活")))
+
+df_plot_Smoking_Status <- df_Smoking_Status %>%
+  group_by(Smoking_Status, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Smoking_Status) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Smoking_Status, aes(x = Smoking_Status, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),limits = c(0, 0.85),
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "tan1", "未存活" = "tomato")) +
+  labs(title = "吸菸狀態與存活結果之比例",x = "吸菸狀態",y = "組內比例",fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(2)Cancer_Stage
+df_Cancer_Stage <- df %>%
+  mutate( Cancer_Stage = factor(Cancer_Stage,
+                                levels = c("Stage I", "Stage II", "Stage III", "Stage IV")),
+          Survived = factor(Survived, levels = c("Yes", "No"), labels = c("存活", "未存活")))
+
+df_plot_Cancer_Stage <- df_Cancer_Stage %>%
+  group_by(Cancer_Stage, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Cancer_Stage) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Cancer_Stage, aes(x = Cancer_Stage, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Cancer_Stage$pct) + 0.1),
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "darkseagreen1", "未存活" = "lightgreen")) +
+  labs(title = "癌症分期與存活結果之比例", x = "癌症分期", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(3)Gender
+df_Gender <- df %>%
+  mutate( Gender = factor(Gender, levels = c("Male", "Female")),
+          Survived = factor(Survived, levels = c("Yes", "No"), labels = c("存活", "未存活")))
+
+df_plot_Gender <- df_Gender %>%
+  group_by(Gender, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Gender) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Gender, aes(x = Gender, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Gender$pct) + 0.1),  
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "lightpink", "未存活" = "lightcoral")) +
+  labs(title = "性別與存活結果之比例", x = "性別", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(4)Cancer_Type
+df_Cancer_Type <- df %>%
+  mutate( Cancer_Type = factor(Cancer_Type, levels = c("NSCLC", "SCLC")),
+          Survived = factor(Survived, levels = c("Yes", "No"), labels = c("存活", "未存活")))
+
+df_plot_Cancer_Type <- df_Cancer_Type %>%
+  group_by(Cancer_Type, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Cancer_Type) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Cancer_Type, aes(x = Cancer_Type, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Cancer_Type$pct) + 0.1),  
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "lightblue1", "未存活" = "steelblue1")) +
+  labs(title = "癌症類型與存活結果之比例", x = "癌症類型", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(5)Chronic_Lung_Disease
+df_Chronic_Lung_Disease <- df %>%
+  mutate( Chronic_Lung_Disease = factor(Chronic_Lung_Disease, levels = c("Yes", "No")),
+          Survived = factor(Survived, levels = c("Yes", "No"), labels = c("存活", "未存活")))
+
+df_plot_Chronic_Lung_Disease <- df_Chronic_Lung_Disease %>%
+  group_by(Chronic_Lung_Disease, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Chronic_Lung_Disease) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Chronic_Lung_Disease, aes(x = Chronic_Lung_Disease, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Chronic_Lung_Disease$pct) + 0.1),  
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "mediumpurple1", "未存活" = "mediumslateblue")) +
+  labs(title = "慢性肺部疾病與存活結果之比例", x = "慢性肺部疾病", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(6)Shortness_of_Breath
+df_Shortness_of_Breath <- df %>%
+  mutate( Shortness_of_Breath = factor(Shortness_of_Breath, levels = c("Yes", "No")),
+          Survived = factor(Survived, levels = c("Yes", "No"),labels = c("存活", "未存活")))
+
+df_plot_Shortness_of_Breath <- df_Shortness_of_Breath %>%
+  group_by(Shortness_of_Breath, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Shortness_of_Breath) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Shortness_of_Breath, aes(x = Shortness_of_Breath, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Shortness_of_Breath$pct) + 0.1),  
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "darkolivegreen1", "未存活" = "darkolivegreen3")) +
+  labs(title = "呼吸困難與存活結果之比例", x = "呼吸困難", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(7)Chest_Pain
+df_Chest_Pain <- df %>%
+  mutate( Chest_Pain = factor(Chest_Pain,levels = c("Yes", "No")),
+          Survived = factor(Survived, levels = c("Yes", "No"),labels = c("存活", "未存活")))
+
+df_plot_Chest_Pain <- df_Chest_Pain %>%
+  group_by(Chest_Pain, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Chest_Pain) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Chest_Pain, aes(x = Chest_Pain, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Chest_Pain$pct) + 0.1),  
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "tan1", "未存活" = "tomato")) +
+  labs(title = "胸痛與存活結果之比例", x = "胸痛", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(8)Coughing_Blood
+df_Coughing_Blood <- df %>%
+  mutate( Coughing_Blood = factor(Coughing_Blood, levels = c("Yes", "No")),
+          Survived = factor(Survived, levels = c("Yes", "No"), labels = c("存活", "未存活")))
+
+df_plot_Coughing_Blood <- df_Coughing_Blood %>%
+  group_by(Coughing_Blood, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Coughing_Blood) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Coughing_Blood, aes(x = Coughing_Blood, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Coughing_Blood$pct) + 0.1),  
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "tomato", "未存活" = "tomato4")) +
+  labs(title = "咳血與存活結果之比例", x = "咳血", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(9)Fatigue
+df_Fatigue <- df %>%
+  mutate( Fatigue = factor(Fatigue, levels = c("Yes", "No")),
+          Survived = factor(Survived, levels = c("Yes", "No"), labels = c("存活", "未存活")))
+
+df_plot_Fatigue <- df_Fatigue %>%
+  group_by(Fatigue, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Fatigue) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Fatigue, aes(x = Fatigue, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Fatigue$pct) + 0.1),  
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "lightblue1", "未存活" = "steelblue1")) +
+  labs(title = "疲勞與存活結果之比例", x = "疲勞", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(10)Air_Pollution_Exposure
+df_Air_Pollution_Exposure <- df %>%
+  mutate( Air_Pollution_Exposure = factor(Air_Pollution_Exposure, levels = c("Low", "Moderate", "High")),
+          Survived = factor(Survived, levels = c("Yes", "No"), labels = c("存活", "未存活")))
+
+df_plot_Air_Pollution_Exposure <- df_Air_Pollution_Exposure %>%
+  group_by(Air_Pollution_Exposure, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Air_Pollution_Exposure) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Air_Pollution_Exposure, aes(x = Air_Pollution_Exposure, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Air_Pollution_Exposure$pct) + 0.05),  
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "khaki1", "未存活" = "gold")) +
+  labs(title = "空氣汙染與存活結果之比例", x = "空氣汙染", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+#(11)Previous_Cancer_History
+df_Previous_Cancer_History <- df %>%
+  mutate( Previous_Cancer_History = factor(Previous_Cancer_History, levels = c("Yes", "No")),
+          Survived = factor(Survived, levels = c("Yes", "No"), labels = c("存活", "未存活")))
+
+df_plot_Previous_Cancer_History <- df_Previous_Cancer_History %>%
+  group_by(Previous_Cancer_History, Survived) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  group_by(Previous_Cancer_History) %>%
+  mutate(pct = n / sum(n))
+
+ggplot(df_plot_Previous_Cancer_History, aes(x = Previous_Cancer_History, y = pct, fill = Survived)) +
+  geom_bar(stat = "identity", position = "dodge",
+           width = 0.6, color = "white") +
+  geom_text(aes(label = paste0(round(pct * 100, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.5, size = 3.5, color = "gray30") +
+  scale_y_continuous(labels = percent_format(accuracy = 1),
+                     limits = c(0, max(df_plot_Previous_Cancer_History$pct) + 0.05),  
+                     expand = expansion(mult = c(0, 0.05))) +
+  scale_fill_manual(values = c("存活" = "lightblue1", "未存活" = "lightblue3")) +
+  labs(title = "既往癌症史與存活結果之比例", x = "既往癌症史", y = "組內比例", fill = "存活狀態") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        legend.position = "top",
+        panel.grid.major.x = element_blank())
+
+
+#====================離散長條圖====================
+#(1)Cancer_Stage
+df_bar <- df %>%
+  mutate(Cancer_Stage = factor(Cancer_Stage)) 
+
+ggplot(df_bar, aes(x = Cancer_Stage)) +
+  geom_bar(fill = "darkseagreen2", color = "white", width = 0.5) + 
+  geom_text(stat = "count", aes(label = after_stat(count)), 
+            vjust = -0.5, size = 4, color = "gray30", fontface = "bold") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "癌症分期人數", x = "癌症分期 ", y = "人數 ") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        panel.grid.major.x = element_blank())
+
+#(2)Smoking_Status
+df_bar <- df %>%
+  mutate(Smoking_Status = factor(Smoking_Status)) 
+
+ggplot(df_bar, aes(x = Smoking_Status)) +
+  geom_bar(fill = "coral1", color = "white", width = 0.5) + 
+  geom_text(stat = "count", aes(label = after_stat(count)), 
+            vjust = -0.5, size = 4, color = "gray30", fontface = "bold") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "吸菸狀態人數", x = "吸菸狀態", y = "人數 ") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        panel.grid.major.x = element_blank())
+
+#(3)Fatigue
+df_bar <- df %>%
+  mutate(Fatigue = factor(Fatigue, levels = c("Yes", "No"))) 
+
+ggplot(df_bar, aes(x = Fatigue)) +
+  geom_bar(fill = "royalblue1", color = "white", width = 0.5) + 
+  geom_text(stat = "count", aes(label = after_stat(count)), 
+            vjust = -0.5, size = 4, color = "gray30", fontface = "bold") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "疲勞人數", x = "疲勞", y = "人數 ") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        panel.grid.major.x = element_blank())
+
+#(4)Air_Pollution_Exposure
+df_bar <- df %>%
+  mutate(Air_Pollution_Exposure = factor(Air_Pollution_Exposure)) 
+
+ggplot(df_bar, aes(x = Air_Pollution_Exposure)) +
+  geom_bar(fill = "navajowhite", color = "white", width = 0.5) + 
+  geom_text(stat = "count", aes(label = after_stat(count)), 
+            vjust = -0.5, size = 4, color = "gray30", fontface = "bold") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "空氣汙染人數", x = "空氣汙染 ", y = "人數 ") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        panel.grid.major.x = element_blank())
+
+#(5)Previous_Cancer_History
+df_bar <- df %>%
+  mutate(Previous_Cancer_History = factor(Previous_Cancer_History, levels = c("Yes", "No"))) 
+
+ggplot(df_bar, aes(x = Previous_Cancer_History)) +
+  geom_bar(fill = "deepskyblue3", color = "white", width = 0.5) + 
+  geom_text(stat = "count", aes(label = after_stat(count)), 
+            vjust = -0.5, size = 4, color = "gray30", fontface = "bold") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "既往癌症史人數", x = "既往癌症史 ", y = "人數 ") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        panel.grid.major.x = element_blank())
+
+#(6)Shortness_of_Breath
+df_bar <- df %>%
+  mutate(Shortness_of_Breath = factor(Shortness_of_Breath, levels = c("Yes", "No"))) 
+
+ggplot(df_bar, aes(x = Shortness_of_Breath)) +
+  geom_bar(fill = "springgreen3", color = "white", width = 0.5) + 
+  geom_text(stat = "count", aes(label = after_stat(count)), 
+            vjust = -0.5, size = 4, color = "gray30", fontface = "bold") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  labs(title = "呼吸困難人數", x = "呼吸困難 ", y = "人數 ") +
+  theme_minimal(base_size = 13) +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5, margin = margin(b = 12)),
+        axis.text = element_text(color = "gray30"),
+        panel.grid.major.x = element_blank())
+
+#====================Kaplan-Meier====================
+library(readr)
+library(survival)
+library(survminer)
+df$status_num <- ifelse(df$Survived == "No", 1, 0)
+surv_obj <- Surv(time = df$Survival_Months, event = df$status_num)
+
+#(1)Gender(顯著)
+km_fit <- survfit(surv_obj ~ Gender, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Gender",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Gender, data = df)
+print(logrank_test)
+
+#(2)Secondhand_Smoke(不顯著)
+km_fit <- survfit(surv_obj ~ Secondhand_Smoke, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Secondhand_Smoke",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Secondhand_Smoke, data = df)
+print(logrank_test)
+
+#(3)Family_History(不顯著)
+km_fit <- survfit(surv_obj ~ Family_History, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Family_History",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Family_History, data = df)
+print(logrank_test)
+
+#(4)Occupational_Hazard(不顯著)
+km_fit <- survfit(surv_obj ~ Occupational_Hazard, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Occupational_Hazard",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Occupational_Hazard, data = df)
+print(logrank_test)
+
+#(5)Chronic_Lung_Disease(顯著)
+km_fit <- survfit(surv_obj ~ Chronic_Lung_Disease, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Chronic_Lung_Disease",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Chronic_Lung_Disease, data = df)
+print(logrank_test)
+
+#(5)Chronic_Lung_Disease(顯著)
+km_fit <- survfit(surv_obj ~ Chronic_Lung_Disease, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Chronic_Lung_Disease",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Chronic_Lung_Disease, data = df)
+print(logrank_test)
+
+#(6)Previous_Cancer_History(不顯著)
+km_fit <- survfit(surv_obj ~ Previous_Cancer_History, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Previous_Cancer_History",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Previous_Cancer_History, data = df)
+print(logrank_test)
+
+#(7)Coughing(顯著)
+km_fit <- survfit(surv_obj ~ Coughing, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Coughing",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Coughing, data = df)
+print(logrank_test)
+
+#(8)Shortness_of_Breath(顯著)
+km_fit <- survfit(surv_obj ~ Shortness_of_Breath, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Shortness_of_Breath",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Shortness_of_Breath, data = df)
+print(logrank_test)
+
+#(9)Chest_Pain(顯著)
+km_fit <- survfit(surv_obj ~ Chest_Pain, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Chest_Pain",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Chest_Pain, data = df)
+print(logrank_test)
+
+#(10)Coughing_Blood(顯著)
+km_fit <- survfit(surv_obj ~ Coughing_Blood, data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Coughing_Blood",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Coughing_Blood, data = df)
+print(logrank_test)
+
+#(11)Fatigue (顯著)
+km_fit <- survfit(surv_obj ~ Fatigue , data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Fatigue ",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Fatigue , data = df)
+print(logrank_test)
+
+#(12)Smoking_Status (顯著)
+km_fit <- survfit(surv_obj ~ Smoking_Status , data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Smoking_Status ",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Smoking_Status , data = df)
+print(logrank_test)
+
+#(13)Air_Pollution_Exposure (顯著)
+km_fit <- survfit(surv_obj ~ Air_Pollution_Exposure , data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Air_Pollution_Exposure ",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Air_Pollution_Exposure , data = df)
+print(logrank_test)
+
+#(14)Alcohol_Use (不顯著)
+km_fit <- survfit(surv_obj ~ Alcohol_Use , data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Alcohol_Use ",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Alcohol_Use , data = df)
+print(logrank_test)
+
+#(15)Exercise_Frequency (不顯著)
+km_fit <- survfit(surv_obj ~ Exercise_Frequency , data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Exercise_Frequency ",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Exercise_Frequency , data = df)
+print(logrank_test)
+
+#(16)Cancer_Stage (顯著)
+km_fit <- survfit(surv_obj ~ Cancer_Stage , data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Cancer_Stage ",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Cancer_Stage , data = df)
+print(logrank_test)
+
+#(17)Cancer_Type (顯著)
+km_fit <- survfit(surv_obj ~ Cancer_Type , data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Cancer_Type ",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Cancer_Type , data = df)
+print(logrank_test)
+
+#(18)NSCLC_Subtype (顯著)
+km_fit <- survfit(surv_obj ~ NSCLC_Subtype , data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by NSCLC_Subtype ",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ NSCLC_Subtype , data = df)
+print(logrank_test)
+
+#(19)Treatment (顯著)(感覺沒必要)
+km_fit <- survfit(surv_obj ~ Treatment , data = df)
+#KM
+ggsurvplot(
+  km_fit,
+  data = df,
+  pval = TRUE,
+  conf.int = TRUE,
+  title = "Kaplan-Meier Survival Curve by Treatment ",
+  xlab = "Time (Month)",
+  ylab = "Survival Probability"
+)
+# Log-rank Test
+logrank_test <- survdiff(surv_obj ~ Treatment , data = df)
+print(logrank_test)
+
+#====================熱圖====================
+library(rcompanion)
+library(ggplot2)
+library(reshape2)
+library(dplyr)
+
+# 將連續型變數分組（三等分）
+df_cat <- df %>%
+  mutate(
+    Age            = cut(Age, breaks = 3, labels = c("低", "中", "高")),
+    BMI            = cut(BMI, breaks = 3, labels = c("低", "中", "高")),
+    Tumor_Size_cm  = cut(Tumor_Size_cm, breaks = 3, labels = c("小", "中", "大")),
+    Cigarettes_Per_Day = cut(Cigarettes_Per_Day, breaks = 3, labels = c("低", "中", "高")),
+    Years_Smoking  = cut(Years_Smoking, breaks = 3, labels = c("短", "中", "長")),
+    Survival_Months = cut(Survival_Months, breaks = 3, labels = c("短", "中", "長")))
+
+all_vars <- c(
+  "Age", "BMI", "Tumor_Size_cm", "Cigarettes_Per_Day", "Years_Smoking",
+  "Gender", "Smoking_Status", "Cancer_Stage", "Treatment", "Cancer_Type",
+  "NSCLC_Subtype", "Chronic_Lung_Disease", "Previous_Cancer_History",
+  "Secondhand_Smoke", "Occupational_Hazard", "Air_Pollution_Exposure",
+  "Alcohol_Use", "Exercise_Frequency", "Family_History",
+  "Coughing", "Shortness_of_Breath", "Chest_Pain", "Coughing_Blood",
+  "Fatigue", "Survived")
+
+n <- length(all_vars)
+cramer_matrix <- matrix(NA, n, n, dimnames = list(all_vars, all_vars))
+
+for (i in 1:n) {
+  for (j in 1:n) {
+    if (i == j) {
+      cramer_matrix[i, j] <- 1
+    } else {
+      tbl <- table(df_cat[[all_vars[i]]], df_cat[[all_vars[j]]])
+      cramer_matrix[i, j] <- cramerV(tbl, bias.correct = TRUE)
+    }
+  }
+}
+
+cramer_df <- melt(cramer_matrix)
+ggplot(cramer_df, aes(x = Var1, y = Var2, fill = value)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(value, 2)), size = 2.5, color = "gray20") +
+  scale_fill_gradient(low = "white", high = "tomato",
+                      limits = c(0, 1), name = "Cramér's V") +
+  labs(title = "變數間相關性熱圖（Cramér's V）",
+       x = NULL, y = NULL) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title   = element_text(face = "bold", hjust = 0.5),
+    axis.text.x  = element_text(angle = 45, hjust = 1, size = 8),
+    axis.text.y  = element_text(size = 8))
+
+#====================Cox Model====================
+library(survival)
+library(MASS)
+library(dplyr)
+n <- sum(length(df$Survived))
+
+df <- df %>%
+  mutate(
+    # 建立數值型事件變數（1 = 死亡, 0 = 存活）
+    event = ifelse(Survived == "Yes", 0, 1),
+    
+    # 設定 factor 順序
+    Smoking_Status = factor(Smoking_Status,
+                            levels = c("Never Smoked", "Former Smoker", "Current Smoker")),
+    Cancer_Stage = factor(Cancer_Stage,
+                          levels = c("Stage I", "Stage II", "Stage III", "Stage IV")),
+    Air_Pollution_Exposure = factor(Air_Pollution_Exposure,
+                                    levels = c("Low", "Moderate", "High")),
+    Alcohol_Use = factor(Alcohol_Use,
+                         levels = c("No Alcohol", "Moderate", "Heavy")),
+    Exercise_Frequency = factor(Exercise_Frequency,
+                                levels = c("Low", "Moderate", "High"))
+  )
+
+
+# Full Model Cox
+full_cox <- coxph(
+  Surv(Survival_Months, Survived == "No") ~
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking + Smoking_Status +
+    Cancer_Stage + Treatment + Cancer_Type + NSCLC_Subtype +
+    Chronic_Lung_Disease + Previous_Cancer_History + Secondhand_Smoke +
+    Occupational_Hazard + Air_Pollution_Exposure + Alcohol_Use +
+    Exercise_Frequency + Family_History + Gender +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue,
+  data = df)
+summary(full_cox)
+
+# Stepwise AIC 選模 
+full_cox_step <- stepAIC(full_cox, direction = "both", trace = FALSE)
+full_cox_stepB <- stepAIC(full_cox, direction = "both", trace = FALSE, k = log(n))
+summary(full_cox_step)
+summary(full_cox_stepB)
+
+# PH 假設檢驗
+ph_test_full <- cox.zph(full_cox_step)  
+print(ph_test_full)
+plot(ph_test_full)
+ph_test_fullB <- cox.zph(full_cox_stepB) 
+print(ph_test_fullB)
+
+# (1) Stratified Cox 
+cox_Stratified <- coxph(
+  Surv(Survival_Months, Survived == "No") ~
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking + Smoking_Status +
+    Treatment + Cancer_Type + NSCLC_Subtype +
+    Chronic_Lung_Disease + Previous_Cancer_History + Secondhand_Smoke +
+    Occupational_Hazard + Air_Pollution_Exposure + Alcohol_Use +
+    Exercise_Frequency + Family_History + Gender +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue +
+    strata(Cancer_Stage),
+  data = df)
+summary(cox_Stratified)
+
+#  Stepwise
+cox_Stratified_step <- stepAIC(cox_Stratified, direction = "both", trace = FALSE)
+summary(cox_Stratified_step)
+
+# PH 假設檢驗
+ph_test_Stratified <- cox.zph(cox_Stratified_step)  
+print(ph_test_Stratified)
+plot(ph_test_Stratified)
+
+# (2) Partition Time Axis
+# 切割時間軸
+df_split <- survSplit(
+  Surv(Survival_Months, Survived == "No") ~ .,
+  data    = df,
+  cut     = 13,
+  episode = "time_period")
+
+cox_partition <- coxph(
+  Surv(tstart, Survival_Months, event) ~
+    Cancer_Stage : strata(time_period) +
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking +
+    Gender + Smoking_Status + Treatment + Cancer_Type +
+    NSCLC_Subtype + Chronic_Lung_Disease + Previous_Cancer_History +
+    Secondhand_Smoke + Occupational_Hazard + Air_Pollution_Exposure +
+    Alcohol_Use + Exercise_Frequency + Family_History +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue,
+  data = df_split)
+summary(cox_partition)
+
+
+#stepwise
+cox_partition_step <- stepAIC(cox_partition, direction = "both", trace = FALSE)
+summary(cox_partition_step)
+#ph test
+ph_test_partition <- cox.zph(cox_partition_step)  
+print(ph_test_partition)
+
+
+
+# (3) Time-Dependent Covariates
+cox_td <- coxph(
+  Surv(Survival_Months, Survived == "No") ~
+    Cancer_Stage + tt(Cancer_Stage) +
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking +
+    Gender + Smoking_Status + Treatment + Cancer_Type +
+    NSCLC_Subtype + Chronic_Lung_Disease + Previous_Cancer_History +
+    Secondhand_Smoke + Occupational_Hazard + Air_Pollution_Exposure +
+    Alcohol_Use + Exercise_Frequency + Family_History +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue,
+  data = df,
+  tt = function(x, t, ...) {
+    mm <- model.matrix(~ x)[, -1]
+    mm * log(t + 1)
+  })
+summary(cox_td)
+
+#stepwise
+cox_td_step <- stepAIC(cox_td, direction = "both", trace = FALSE)
+summary(cox_td_step)
+cox_td_stepB <- stepAIC(cox_td, direction = "both", trace = FALSE, k = log(n))
+summary(cox_td_step)
+
+# 模型比較
+AIC(full_cox_step,cox_td_step)
+#====================AFT Model====================
+library(survival)
+
+#(1)lognormal
+aft_lognormal <- survreg(
+  Surv(Survival_Months, Survived == "No") ~
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking +
+    Gender + Smoking_Status + Cancer_Stage + Treatment +
+    Cancer_Type + Chronic_Lung_Disease + Previous_Cancer_History +
+    Secondhand_Smoke + Occupational_Hazard + Air_Pollution_Exposure +
+    Alcohol_Use + Exercise_Frequency + Family_History +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue,
+  data = df,
+  dist = "lognormal")
+
+#(2)weibull
+aft_weibull <- survreg(
+  Surv(Survival_Months, Survived == "No") ~
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking +
+    Gender + Smoking_Status + Cancer_Stage + Treatment +
+    Cancer_Type + Chronic_Lung_Disease + Previous_Cancer_History +
+    Secondhand_Smoke + Occupational_Hazard + Air_Pollution_Exposure +
+    Alcohol_Use + Exercise_Frequency + Family_History +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue,
+  data = df,
+  dist = "weibull")
+
+#(3)exponential
+aft_exponential <- survreg(
+  Surv(Survival_Months, Survived == "No") ~
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking +
+    Gender + Smoking_Status + Cancer_Stage + Treatment +
+    Cancer_Type + Chronic_Lung_Disease + Previous_Cancer_History +
+    Secondhand_Smoke + Occupational_Hazard + Air_Pollution_Exposure +
+    Alcohol_Use + Exercise_Frequency + Family_History +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue,
+  data = df,
+  dist = "exponential")
+
+#(4)loglogistic
+aft_loglogistic <- survreg(
+  Surv(Survival_Months, Survived == "No") ~
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking +
+    Gender + Smoking_Status + Cancer_Stage + Treatment +
+    Cancer_Type + Chronic_Lung_Disease + Previous_Cancer_History +
+    Secondhand_Smoke + Occupational_Hazard + Air_Pollution_Exposure +
+    Alcohol_Use + Exercise_Frequency + Family_History +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue,
+  data = df,
+  dist = "loglogistic")
+
+#aft_weibull的AIC&BIC最小
+AIC(aft_lognormal, aft_exponential, aft_weibull, aft_loglogistic)
+BIC(aft_weibull, aft_exponential, aft_lognormal, aft_loglogistic)
+summary(aft_weibull)
+
+aft_weibull_step <- stepAIC(aft_weibull, direction = "both", trace = FALSE)
+aft_weibull_stepB <- stepAIC(aft_weibull, direction = "both", trace = FALSE, k = log(n))
+summary(aft_weibull_step)
+summary(aft_weibull_stepB)
+
+#====================log-log Plot====================
+library(survival)
+#(1)Cancer Stage
+km_fit_stratified <- survfit(Surv(Survival_Months, Survived == "No") ~ Cancer_Stage, data = df)
+plot(km_fit_stratified, 
+     fun = "cloglog",           
+     log = "x",                 
+     col = c("black", "darkgray"), 
+     lty = c(2, 3, 4, 5),         
+     lwd = 1.5,                 
+     mark.time = TRUE,        
+     pch = 3,                   
+     cex = 0.7,               
+     xlab = "time", 
+     ylab = "log-log S(t)",     
+     main = "Weibull AFT Model(Cancer Stage)")
+
+legend("bottomright", 
+       legend = levels(factor(df$Cancer_Stage)), 
+       col = c("black", "darkgray"), 
+       lty = c(2, 3, 4, 5), 
+       lwd = 1,
+       bg = "white",
+       cex = 0.85) 
+#(2)Air_Pollution_Exposure
+km_fit_stratified <- survfit(Surv(Survival_Months, Survived == "No") ~ Air_Pollution_Exposure, data = df)
+plot(km_fit_stratified, 
+     fun = "cloglog",           
+     log = "x",                 
+     col = c("black", "darkgray"), 
+     lty = c(2, 3, 4),         
+     lwd = 1.5,                 
+     mark.time = TRUE,        
+     pch = 3,                   
+     cex = 0.7,               
+     xlab = "time", 
+     ylab = "log-log S(t)",     
+     main = "Weibull AFT Model(Air_Pollution_Exposure)")
+
+legend("bottomright", 
+       legend = levels(factor(df$Air_Pollution_Exposure)), 
+       col = c("black", "darkgray"), 
+       lty = c(2, 3, 4), 
+       lwd = 1,
+       bg = "white",
+       cex = 0.85)
+#(3)Shortness_of_Breath
+km_fit_stratified <- survfit(Surv(Survival_Months, Survived == "No") ~ Shortness_of_Breath, data = df)
+plot(km_fit_stratified, 
+     fun = "cloglog",           
+     log = "x",                 
+     col = c("black", "darkgray"), 
+     lty = c(2, 3),         
+     lwd = 1.5,                 
+     mark.time = TRUE,        
+     pch = 3,                   
+     cex = 0.7,               
+     xlab = "time", 
+     ylab = "log-log S(t)",     
+     main = "Weibull AFT Model(Shortness_of_Breath)")
+
+legend("bottomright", 
+       legend = levels(factor(df$Shortness_of_Breath)), 
+       col = c("black", "darkgray"), 
+       lty = c(2, 3), 
+       lwd = 1,
+       bg = "white",
+       cex = 0.85) 
+#(4)Fatigue
+km_fit_stratified <- survfit(Surv(Survival_Months, Survived == "No") ~ Fatigue, data = df)
+plot(km_fit_stratified, 
+     fun = "cloglog",           
+     log = "x",                 
+     col = c("black", "darkgray"), 
+     lty = c(2, 3),         
+     lwd = 1.5,                 
+     mark.time = TRUE,        
+     pch = 3,                   
+     cex = 0.7,               
+     xlab = "time", 
+     ylab = "log-log S(t)",     
+     main = "Weibull AFT Model(Fatigue)")
+
+legend("bottomright", 
+       legend = levels(factor(df$Fatigue)), 
+       col = c("black", "darkgray"), 
+       lty = c(2, 3), 
+       lwd = 1,
+       bg = "white",
+       cex = 0.85) 
+
+
+#====================Cox Snell====================
+library(survival)
+# 1. Cox 模型的 Cox-Snell 
+# 提取資料與計算殘差
+cox_time   <- full_cox_step$y[, 1]
+cox_status <- full_cox_step$y[, 2]
+cs_cox     <- cox_status - residuals(full_cox_step, type = "martingale")
+
+# 估計累積風險
+fit_cs_cox <- survfit(Surv(cs_cox, cox_status) ~ 1)
+H_cox      <- -log(fit_cs_cox$surv)
+
+plot(fit_cs_cox$time, H_cox, 
+     type = 'p',                
+     pch = 16,                  
+     cex = 0.7,                 
+     xlab = "Cox–Snell residual", 
+     ylab = "Cumulative hazard", 
+     main = "Cox–Snell Check\n(Cox Model)")
+abline(0, 1, col = "red", lty = 2, lwd = 1.5)
+
+# 2. Cox_td 模型的 Cox-Snell 
+# 提取資料與計算殘差
+cox_time   <- cox_td_step$y[, 1]
+cox_status <- cox_td_step$y[, 2]
+cs_cox     <- cox_status - residuals(cox_td_step, type = "martingale")
+
+# 估計累積風險
+fit_cs_cox <- survfit(Surv(cs_cox, cox_status) ~ 1)
+H_cox      <- -log(fit_cs_cox$surv)
+
+plot(fit_cs_cox$time, H_cox, 
+     type = 'p',                
+     pch = 16,                  
+     cex = 0.7,                 
+     xlab = "Cox–Snell residual", 
+     ylab = "Cumulative hazard", 
+     main = "Cox–Snell Check\n(Cox_td Model)")
+abline(0, 1, col = "red", lty = 2, lwd = 1.5)
+
+
+# 3. AFT 模型 (Weibull) 的 Cox-Snell 
+aft_time    <- aft_weibull_step$y[, 1]
+aft_status  <- aft_weibull_step$y[, 2]
+linear_pred <- predict(aft_weibull_step, type = "linear")
+scale_val   <- aft_weibull_step$scale
+cs_aft      <- exp((log(aft_time) - linear_pred) / scale_val)
+
+# 估計累積風險
+fit_cs_aft <- survfit(Surv(cs_aft, aft_status) ~ 1)
+H_aft      <- -log(fit_cs_aft$surv)
+
+plot(fit_cs_aft$time, H_aft, 
+     type = 'p',                
+     pch = 16,                  
+     cex = 0.7,                 
+     xlab = "Cox–Snell residual", 
+     ylab = "Cumulative hazard", 
+     main = "Cox–Snell Check\n(Weibull AFT Model)")
+abline(0, 1, col = "red", lty = 2, lwd = 1.5)
+
+
+
+
+#====================半母數AFT Model====================
+library(survival)
+library(aftgee)
+
+#(1)aftgee
+best_formula <- formula(aft_weibull_step)
+aft_gee <- aftgee(best_formula, data = df, id = 1:nrow(df), corstr = "independence")
+summary(aft_gee)
+
+# (1-1)aftgee 
+full_gee_aft <- aftgee(
+  Surv(Survival_Months, Survived == "No") ~ 
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking + Smoking_Status +
+    Cancer_Stage + Treatment + Cancer_Type + NSCLC_Subtype +
+    Chronic_Lung_Disease + Previous_Cancer_History + Secondhand_Smoke +
+    Occupational_Hazard + Air_Pollution_Exposure + Alcohol_Use +
+    Exercise_Frequency + Family_History + Gender +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue,
+  data = df, corstr = "independence", B = 100)
+summary(full_gee_aft)
+
+
+#(2)aftsrr
+aft_semi_rank <- aftsrr(best_formula, data = df, id = 1:nrow(df), se = "ISMB")
+summary(aft_semi_rank)
+
+#(2-1)aftsrr
+full_semi_aft <- aftsrr(
+  Surv(Survival_Months, Survived == "No") ~ 
+    Age + BMI + Tumor_Size_cm + Cigarettes_Per_Day + Years_Smoking + Smoking_Status +
+    Cancer_Stage + Treatment + Cancer_Type + NSCLC_Subtype +
+    Chronic_Lung_Disease + Previous_Cancer_History + Secondhand_Smoke +
+    Occupational_Hazard + Air_Pollution_Exposure + Alcohol_Use +
+    Exercise_Frequency + Family_History + Gender +
+    Coughing + Shortness_of_Breath + Chest_Pain + Coughing_Blood + Fatigue,
+  data = df, id = 1:nrow(df), se = "ISMB")
+summary(full_semi_aft)
+
+#(3)rms
+library(rms)
+
+best_formula <- formula(aft_weibull_step)
+dd <- datadist(df)
+options(datadist = "dd")
+bj_model <- bj(best_formula, data = df, x = TRUE, y = TRUE)
+
+summary(bj_model)
+print(bj_model)
+
+
+
+#====================Martingale residual====================
+# (1)Cox Model
+#(1-1)Cancer_Stage
+res_mart <- residuals(full_cox_step, type = "martingale")
+plot(as.numeric(factor(df$Cancer_Stage)), res_mart, 
+     xlab = "Cancer Stage ", ylab = "Martingale Residuals",
+     main = "Martingale Residuals by Cancer Stage", type = 'p',
+     pch = 1, col = rgb(0.2, 0.4, 0.6, 0.5))
+abline(h = 0, col = "red", lwd = 2, lty = 2) 
+
+#(1-1)Air_Pollution_Exposure
+res_mart <- residuals(full_cox_step, type = "martingale")
+plot(as.numeric(factor(df$Air_Pollution_Exposure)), res_mart, 
+     xlab = "Cancer Stage ", ylab = "Martingale Residuals",
+     main = "Martingale Residuals by Cancer Stage", type = 'p',
+     pch = 1, col = rgb(0.2, 0.4, 0.6, 0.5))
+abline(h = 0, col = "red", lwd = 2, lty = 2) 
+
+#(2)AFT Model
+#(2-1)Cancer_Stage
+# 計算 Cox-Snell 殘差 (Weibull)
+lp <- predict(aft_weibull_step, type = "lp")  # 取得線性預測值
+scale_param <- aft_weibull_step$scale         # 取得 Weibull 的尺度參數
+cs_res <- (exp(log(df$Survival_Months) - lp)) ^ (1 / scale_param)
+
+# 轉換事件狀態並推導 Martingale 殘差
+event_status <- ifelse(df$Survived == "No", 1, 0) 
+mart_res_aft <- event_status - cs_res             
+
+plot(as.numeric(factor(df$Cancer_Stage)), mart_res_aft, 
+     xlab = "Cancer Stage ", ylab = "AFT Martingale Residuals",
+     main = "AFT Martingale Residuals by Cancer Stage",
+     pch = 1, col = rgb(0.2, 0.4, 0.6, 0.5))
+abline(h = 0, col = "red", lwd = 2, lty = 2) 
+#(2-2)Tumor_Size_cm
+lp <- predict(aft_weibull_step, type = "lp")  
+scale_param <- aft_weibull_step$scale         
+cs_res <- (exp(log(df$Survival_Months) - lp)) 
+event_status <- ifelse(df$Survived == "No", 1, 0) 
+mart_res_aft <- event_status - cs_res             
+
+plot(as.numeric(factor(df$Tumor_Size_cm)), mart_res_aft, 
+     xlab = "Tumor_Size_cm ", ylab = "AFT Martingale Residuals",
+     main = "AFT Martingale Residuals by Tumor_Size_cm",
+     pch = 1, col = rgb(0.2, 0.4, 0.6, 0.5))
+abline(h = 0, col = "red", lwd = 2, lty = 2) 
+
+#(2-3)Cigarettes_Per_Day
+lp <- predict(aft_weibull_step, type = "lp")  
+scale_param <- aft_weibull_step$scale         
+cs_res <- (exp(log(df$Survival_Months) - lp)) 
+event_status <- ifelse(df$Survived == "No", 1, 0) 
+mart_res_aft <- event_status - cs_res             
+
+plot(as.numeric(factor(df$Cigarettes_Per_Day)), mart_res_aft, 
+     xlab = "Cigarettes_Per_Day ", ylab = "AFT Martingale Residuals",
+     main = "AFT Martingale Residuals by Cigarettes_Per_Day",
+     pch = 1, col = rgb(0.2, 0.4, 0.6, 0.5))
+abline(h = 0, col = "red", lwd = 2, lty = 2)
+#(2-4)Years_Smoking
+lp <- predict(aft_weibull_step, type = "lp")  
+scale_param <- aft_weibull_step$scale         
+cs_res <- (exp(log(df$Survival_Months) - lp)) 
+event_status <- ifelse(df$Survived == "No", 1, 0) 
+mart_res_aft <- event_status - cs_res             
+
+plot(as.numeric(factor(df$Years_Smoking)), mart_res_aft, 
+     xlab = "Years_Smoking ", ylab = "AFT Martingale Residuals",
+     main = "AFT Martingale Residuals by Years_Smoking",
+     pch = 1, col = rgb(0.2, 0.4, 0.6, 0.5))
+abline(h = 0, col = "red", lwd = 2, lty = 2)
+
+#====================Deviance residual====================
+#(1)Cox model
+dev_res_cox <- residuals(full_cox_step, type = "deviance")
+plot(dev_res_cox, 
+     xlab = "(Data from Cox Model)",     
+     ylab = "Deviance Residuals",        
+     main = "Deviance Residuals Check for Cox Model",
+     pch = 1,                            
+     col = "black",                      
+     ylim = c(-3.5, 3.5))                
+abline(h = 0, col = "red", lwd = 1.5)
+
+#(2)AFT Model
+dev_res_aft <- residuals(aft_weibull_step, type = "deviance")
+plot(dev_res_aft, 
+     xlab = "(Data from Weibull Model)", 
+     ylab = "Deviance Residuals",        
+     main = "Deviance Residuals Check for Weibull AFT Model",
+     pch = 1,                            
+     col = "black",                      
+     ylim = c(-3.5, 3.5))                
+abline(h = 0, col = "red", lwd = 1.5)
+
+#====================LR檢定====================
+# 完整模型（stepAIC 選出的模型）
+aft_full <- aft_weibull_step
+
+# 去掉 Fatigue 的模型
+aft_no_fatigue <- update(aft_full, . ~ . - Fatigue)
+
+# 去掉 Shortness_of_Breath 的模型
+aft_no_sob <- update(aft_full, . ~ . - Shortness_of_Breath)
+
+# 去掉兩者的模型
+aft_no_both <- update(aft_full, . ~ . - Fatigue - Shortness_of_Breath)
+
+# LR 檢定：有無 Fatigue
+lrtest(aft_full, aft_no_fatigue)
+
+# LR 檢定：有無 Shortness_of_Breath
+lrtest(aft_full, aft_no_sob)
+
+# LR 檢定：同時去掉兩個
+lrtest(aft_full, aft_no_both)
